@@ -5,7 +5,8 @@
       <v-col v-for="item in list" :key="item.id" cols="4">
         <v-card class="mx-auto"
                 max-width="344"
-                 outlined>
+                 outlined
+                 elevation="3" shaped>
                
                   <v-card-title>{{item.name}}</v-card-title>
                <v-card-subtitle>{{item.email}}</v-card-subtitle>

@@ -216,7 +216,7 @@
   
 
                                                                      <!-- error inserted value in csv -->
-
+<!-- 
              <div v-if="errordata.length>0" class="my-5">
                <h2 class="text-center warning--text mb-3" >Invalid Inserted Row</h2>
                <v-alert v-for="(item,index) in errordata" :key="item.id"
@@ -237,13 +237,53 @@
 <br>
 
 <hr>
-<br>
+<br> -->
+
+                                                            <!-- --------------expandable data---------------- -->
+  
+  <div v-if="errordata.length>0">
+      
+   
+    <v-data-table
+      :headers="errorHeader"
+      :items="errordata"
+      
+      :expanded.sync="expanded"
+      item-key="controller_id"
+      show-expand
+      @click:row="clicked"
+      class="elevation-1 error--text my-5"
+      
+      
+    >
+      <template v-slot:top>
+        <v-toolbar flat>
+          <v-toolbar-title class="text-center error--text">INVALID INSERTED ROW</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-switch
+            v-model="singleExpand"
+            label="Single expand"
+            class="mt-2"
+          ></v-switch>
+        </v-toolbar>
+      </template>
+      <template v-slot:expanded-item="{ headers, item }">
+        <td :colspan="headers.length">
+         <ul v-for="data in item.errorMsg" :key="data.id">
+           <li>{{data}}</li>
+         </ul>
+        </td>
+      </template>
+    </v-data-table>
+ 
+  </div>
+
 
 
 
                                                    <!--    ***********          table data          * ******     -->
 
-<div class="my-3" v-if="fileinput.length >0">
+<div class="my-4" v-if="fileinput.length >0">
   <h2 class="text-center success--text">Correct Inserted row</h2>
    <v-data-table
     :headers="headers"
@@ -317,6 +357,8 @@ export default {
                     errormessage:[],
                     dialog: false,
                     dialog2:false,
+                     expanded: [],
+                    singleExpand: false,
                     flag:false,
                     id:'',
                     title:'',
@@ -354,14 +396,14 @@ export default {
           { text: 'Remove Row', value: 'actions', sortable: false },
         ],
 
-        //            Errorheaders: [
+              errorHeader: [
           
-        //   { text: 'motor_controller_type_id', value: 'motor_controller_type_id' },
-        //   { text: 'controller_id', value: 'controller_id' },
-        //   { text: 'lot_no', value: 'lot_no' },
-        //   { text: 'has_uart', value: 'has_uart' },
-          
-        // ],
+          { text: 'motor_controller_type_id', value: 'motor_controller_type_id' },
+          { text: 'controller_id', value: 'controller_id' },
+          { text: 'lot_no', value: 'lot_no' },
+          { text: 'has_uart', value: 'has_uart' },
+         { text: '', value: 'data-table-expand' },
+        ],
         
 
         attributes : [
@@ -373,7 +415,7 @@ export default {
   {
     "attribute": "controller_id",
     "mandatory": true,
-    "validation": null,
+    "validation": true,
     "scan": true
   },
   {
@@ -399,7 +441,7 @@ export default {
     methods:{
               onFileChange(files) {
                 this.flag = true;
-                this.deleteError;
+                // this.deleteError;
                 
                 let filename = files.name.split('.');
                  
@@ -461,18 +503,33 @@ export default {
  
               }
               
+
+             else if(this.attributes[k].scan === true){
+               
+                for(let item of this.fileinput){
+                  if(temp[header] === item[header]){
+                    test=true;
+                    errorMsg.push(header +" must be unique at row "+(i+1)  + " column "+(k+1));
+                  }
+                }
+              }
+              
             }
             // console.log(errorMsg);
             
 
             if(!test){
+             
             this.fileinput.push(temp);
             }else{
               this.errormessage.push(errorMsg);
+              temp['errorMsg'] = errorMsg;
               this.errordata.push(temp);
             }      
     }
   
+  console.log(this.errordata);
+  console.log("--------------------------");
   console.log(this.fileinput);
         
 
@@ -611,10 +668,10 @@ export default {
         this.fileinput.splice(index, 1);
     },
 
-    deleteError(){
-      this.errormessage = [];
-      this.errordata = [];
-    },
+    // deleteError(){
+    //   this.errormessage = [];
+    //   this.errordata = [];
+    // },
 
      getPost(){
        
@@ -624,6 +681,15 @@ export default {
                               
             })
            },
+
+            clicked (value) {
+    const index = this.expanded.indexOf(value)
+    if (index === -1) {
+      this.expanded.push(value)
+    } else {
+      this.expanded.splice(index, 1)
+    }
+  },
 
 
 
